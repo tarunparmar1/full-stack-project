@@ -30,6 +30,10 @@ avatar: {
     type: String,
     required: true,
 },
+coverImage: {
+    type: String,
+   
+},
 password: {
     type: String,
     required: [true, "Password is required"],
@@ -43,12 +47,12 @@ refreshToken: {
 }
 )
 
-userschema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
-        return next()
+        return;                       // not use next() in this it is updated version of mongoose
     }
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
+    this.password = await bcrypt.hash(this.password, 10);
+    
 })
 userSchema.method.isPasswordCorrect = async function(password) {
     return await bcrypt.compare(password, this.password)
@@ -58,10 +62,10 @@ userSchema.method.isPasswordCorrect = async function(password) {
 userSchema.method.generateAccessToken = function(){
     return jwt.sign(
         {
-            _id = this.id,
-            email = this.email,
-            username = this.username,
-            fullName = this.fullName,
+            _id : this.id,
+            email : this.email,
+            username : this.username,
+            fullName : this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,{
             expiresIn : process.env.ACCESS_TOKEN_EXPIRY
@@ -71,7 +75,7 @@ userSchema.method.generateAccessToken = function(){
 userSchema.method.generateRefreshToken = function(){
     return jwt.sign(
         {
-            _id = this.id,
+            _id : this.id,
            
         },
         process.env.REFRESH_TOKEN_SECRET,{

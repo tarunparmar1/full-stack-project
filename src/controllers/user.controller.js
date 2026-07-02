@@ -5,37 +5,44 @@ import {uplodOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 
 const registerUser = asyncHandler(async(req,res) =>{
-  const {fullname,email,username,password} = req.body
+  const {fullName,email,username,password} = req.body
   console.log("email :", email);
 
-  if([fullname,email,username,password].some((field) => 
+  if([fullName,email,username,password].some((field) => 
   field?.trim() ===""))
   {
     throw new ApiError(400,"All fieldare requerd")
   }
 
-  const existedUser =User.findOne({
+  const existedUser = await User.findOne({
     $or: [{username}, {email}]
   })
    if(existedUser){
     throw new ApiError(409, "user whith emali or username already exists")
    }
-   const avatarLocalPath =req.files?.avatar[0]?.Path;
-   const coverImageLocalpath = req.files?.cover[0]?.path;
+   const avatarLocalPath =req.files?.avatar?.[0]?.path;
+   const coverImageLocalpath = req.files?.coverImage?.[0]?.path;
 
    if(!avatarLocalPath){
     throw new ApiError(400,"avatar fils is requerd")
    }
 
-   const avatar=await uplodOnCloudinary(avatarLocalPath)
-   const coverImage = await uplodOnCloudinary(coverImageLocalpath)
+   console.log("req.files:", req.files);
+
+
+const avatar = await uplodOnCloudinary(avatarLocalPath);
+
+
+const coverImage = await uplodOnCloudinary(coverImageLocalpath);
+
 
    if(!avatar){
     throw new ApiError(400,"avatar fils is requerd")
    }
  const user = await User.create({
-    fullname,
+    fullName,
     avatar:avatar.url,
+    password,
     coverImage : coverImage?.url || "",
     email,
     username : username.toLowerCase()
